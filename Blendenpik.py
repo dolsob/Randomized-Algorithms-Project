@@ -9,8 +9,8 @@ from scipy.sparse import dia_matrix
 from scipy.sparse.linalg import lsqr
 from random import uniform, randrange
 
-m = 1500
-n = 20
+m = 5432
+n = 100
 gamma = 4
 p = gamma * n / m
 
@@ -20,22 +20,29 @@ b = random.randn(m)
 
 # Change condition number
 U, S, V = np.linalg.svd(A)
-condition = 50000000000
-jump = condition/(np.size(S) - 2)
+condition = 100000
+jump = condition/(np.size(S))
 for i in range(0, 19) :
     S[i] = jump * i + 1
 S1 = np.zeros((m, n))
 np.fill_diagonal(S1, S)
-
 A = np.matmul(np.matmul(U, S1), V.T)
 
+print("Condition number of A = ", np.linalg.cond(A))
 
+Q = linalg.qr(A, mode='economic')[0]
+
+Q = np.square(Q)
+S = np.zeros(np.shape(Q)[0])
+for i in range(0, np.shape(Q)[0]) :
+    S[i] = np.sum(Q[i])
+
+print("Coherence of A = ", max(S) )
 
 # Start Blendenpik
 start_time = time.time()
 
-
-#_m (~m) is the next multiple of 1000
+# #_m (~m) is the next multiple of 1000
 _m = math.ceil(m / 1000) * 1000
 # M is the matrix A with ~m-m rows of 0 padded on
 M = np.vstack( (A, np.zeros((_m - m , n))) )
@@ -44,29 +51,29 @@ M = np.vstack( (A, np.zeros((_m - m , n))) )
 for i in range(0, _m) :
     M[i] = M[i] * randrange(-1, 2, 2)
 
-# Discrete Cosine Transform of M
+# Apply Discrete Cosine Transform (F) of D(M)
 M = sp.fftpack.dct(M)
 
-# Apply S to M
-for i in range(0, _m) :
+# Apply S to F(D(M))
+for i in range(0, m) :
     if (uniform(0, 1) > p) :
         M[i] = 0
 
-# Q R factorization of S applied to M
+# Q R factorization of S(F(D(M)))
 R = linalg.qr(M, mode='economic')[1]
 
 # Solves the related system
-y = sp.sparse.linalg.lsqr( np.matmul(A, np.linalg.inv(R)), b)[0] # need to solve "(A * R^-1) * y = b" then solve "R * x = y" to get x
+y = np.linalg.lstsq( np.matmul(A, np.linalg.inv(R)), b, rcond=None)[0] # need to solve "(A * R^-1) * y = b" then solve "R * x = y" to get x
 # solves for the final answer
-x = sp.sparse.linalg.lsqr(R, y)[0]
+x = np.linalg.lstsq(R, y, rcond=None)[0]
+
+
 end_time = time.time()
-
-
 
 
 # Directly solves the system
 start_time1 = time.time()
-x_ = sp.sparse.linalg.lsqr(A, b)[0]
+x_ = np.linalg.lstsq(A, b, rcond=None)[0]
 end_time1 = time.time()
 
 n1 = np.linalg.norm((np.matmul(A, x) - b))
