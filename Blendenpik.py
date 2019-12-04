@@ -10,36 +10,14 @@ from scipy.sparse import dia_matrix
 from scipy.sparse.linalg import lsqr
 from random import uniform, randrange
 
-m = 5432
-n = 100
+m = 20000
+n = 750
 gamma = 1.5
 p = gamma * n / m
 
 A = sp.sparse.rand(m,n, density=.1, format="lil")
 x_soln = np.random.rand(n) # the true x to solve Ax = b
 b = A*x_soln
-
-# i commented this out because i was just using the above sparse matrix -- not sure if we keep this in or not
-## Change condition number
-#U, S, V = np.linalg.svd(A)
-#condition = 100000
-#jump = condition/(np.size(S))
-#for i in range(0, 19) :
-    #S[i] = jump * i + 1
-#S1 = np.zeros((m, n))
-#np.fill_diagonal(S1, S)
-#A = np.matmul(np.matmul(U, S1), V.T)
-
-#print("Condition number of A = ", np.linalg.cond(A))
-
-#Q = linalg.qr(A, mode='economic')[0]
-
-#Q = np.square(Q)
-#S = np.zeros(np.shape(Q)[0])
-#for i in range(0, np.shape(Q)[0]) :
-    #S[i] = np.sum(Q[i])
-
-#print("Coherence of A = ", max(S) )
 
 # Start Blendenpik
 start_time = time.time()
@@ -55,6 +33,7 @@ for i in range(0, _m) :
     
 # Apply Discrete Cosine Transform (F) of D(M)
 M = sp.fftpack.dct(M)
+M[0] = M[0] / math.sqrt(2)
 
 # randomly select rows with probability p = gamma * n /m
 p = min(1, gamma*n/_m)
@@ -75,9 +54,9 @@ start_time1 = time.time()
 x_ = sp.sparse.linalg.lsqr(A, b)[0]
 end_time1 = time.time()
 
-n1 = np.linalg.norm(x-x_soln,ord =2)
-n2 = np.linalg.norm(x_-x_soln,ord =2)
+n1 = np.linalg.norm(x-x_soln,ord = np.inf)
+n2 = np.linalg.norm(x_-x_soln,ord = np.inf)
 
-print("Norm of Blendenpik estimate", n1, " in ", end_time - start_time)
-print("Norm from numpy lsqr", n2, " in ", end_time1 - start_time1)
-print("Ratio:", n1/n2)
+print("Condition number of A - ", np.linalg.cond(A.toarray()))
+print("Max absolute value of difference - Blendenpik estimate\t", n1, " in ", end_time - start_time)
+print("Max absolute value of difference - scipy lsqr\t\t", n2, " in ", end_time1 - start_time1)
