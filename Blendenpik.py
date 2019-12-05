@@ -28,11 +28,9 @@ _m = math.ceil(m / 1000) * 1000
 M = np.vstack( (A.toarray(), np.zeros((_m - m , n))) )
 
 # Apply D to M
-for i in range(0, _m) :
-    M[i] = M[i] * randrange(-1, 2, 2)
-    
+D = scipy.sparse.diags(np.random.choice([-1,1], _m))   
 # Apply Discrete Cosine Transform (F) of D(M)
-M = sp.fftpack.dct(M)
+M = sp.fftpack.dct(D*M)
 M[0] = M[0] / math.sqrt(2)
 
 # randomly select rows with probability p = gamma * n /m
@@ -42,12 +40,13 @@ SM = M[selectedRows,:]
 
 # QR factorization of S(F(D(M)))
 Q, R = np.linalg.qr(SM)
-# Solves the related system
-y = np.linalg.lstsq( np.matmul(A.toarray(), np.linalg.inv(R)), b, rcond=None)[0] # need to solve "(A * R^-1) * y = b" then solve "R * x = y" to get x
-# solves for the final answer
-x = np.linalg.lstsq(R, y, rcond=None)[0]
-end_time = time.time()
 
+# Solves the related system
+y = sp.sparse.linalg.lsqr(A * np.linalg.inv(R), b)[0]
+#solves for the final answer
+x = sp.sparse.linalg.lsqr(R, y)[0]
+
+end_time = time.time()
 
 # Directly solves the system
 start_time1 = time.time()
@@ -60,3 +59,4 @@ n2 = np.linalg.norm(x_-x_soln,ord = np.inf)
 print("Condition number of A - ", np.linalg.cond(A.toarray()))
 print("Max absolute value of difference - Blendenpik estimate\t", n1, " in ", end_time - start_time)
 print("Max absolute value of difference - scipy lsqr\t\t", n2, " in ", end_time1 - start_time1)
+print("Time ratio, numpy/Blendenpik:", (end_time1 - start_time1)/(end_time - start_time))
