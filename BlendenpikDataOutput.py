@@ -60,12 +60,12 @@ for i in range(numTrials):
     x_ = sp.sparse.linalg.lsqr(A, b)[0]
     end_time1 = time.time()
     
-    n1 = np.linalg.norm(x-x_soln,ord = np.inf)
-    n2 = np.linalg.norm(x_-x_soln,ord = np.inf)
+    n1 = np.linalg.norm(x-x_soln,ord = 2)
+    n2 = np.linalg.norm(x_-x_soln,ord = 2)
     
     print("\tCondition number of A - ", np.linalg.cond(A.toarray()))
-    print("\tMax absolute value of difference - Blendenpik estimate\t", n1, " in ", end_time - start_time)
-    print("\tMax absolute value of difference - scipy lsqr\t\t", n2, " in ", end_time1 - start_time1)
+    print("\t2-Norm difference - Blendenpik estimate\t", n1, " in ", end_time - start_time)
+    print("\t2-Norm difference - scipy lsqr\t\t", n2, " in ", end_time1 - start_time1)
     print("\tTime ratio, numpy/Blendenpik:", (end_time1 - start_time1)/(end_time - start_time))
     totalBlendenpikTime += end_time-start_time
     totalNumpyTime += end_time1-start_time1

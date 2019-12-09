@@ -10,7 +10,7 @@ from scipy.sparse import dia_matrix
 from scipy.sparse.linalg import lsqr
 from random import uniform, randrange
 
-m = 20000
+m = 30000
 n = 750
 gamma = 1.5
 p = gamma * n / m
@@ -53,10 +53,11 @@ start_time1 = time.time()
 x_ = sp.sparse.linalg.lsqr(A, b)[0]
 end_time1 = time.time()
 
-n1 = np.linalg.norm(x-x_soln,ord = np.inf)
-n2 = np.linalg.norm(x_-x_soln,ord = np.inf)
+n1 = np.linalg.norm(x-x_soln,ord = 2)
+n2 = np.linalg.norm(x_-x_soln,ord = 2)
 
 print("Condition number of A - ", np.linalg.cond(A.toarray()))
-print("Max absolute value of difference - Blendenpik estimate\t", n1, " in ", end_time - start_time)
-print("Max absolute value of difference - scipy lsqr\t\t", n2, " in ", end_time1 - start_time1)
+print("2-Norm difference - Blendenpik estimate\t", n1, " in ", end_time - start_time)
+print("2-Norm difference - scipy lsqr\t\t", n2, " in ", end_time1 - start_time1)
 print("Time ratio, numpy/Blendenpik:", (end_time1 - start_time1)/(end_time - start_time))
+
